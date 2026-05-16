@@ -4,7 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Human Calendar — dark-first, calm minimal theme */
-:root {
+/* :root = dark default; .light overrides on <html> via next-themes */
+:root, .dark {
   /* Dark mode is default */
   --background: oklch(0.12 0.005 240);
   --foreground: oklch(0.93 0.005 240);
