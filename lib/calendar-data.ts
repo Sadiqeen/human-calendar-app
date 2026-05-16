@@ -1,4 +1,4 @@
-export type Season = "❄️ Winter" | "🌸 Spring" | "☀️ Summer" | "🍂 Autumn"
+export type Season = "Winter" | "Spring" | "Summer" | "Autumn"
 
 export interface MonthData {
   number: number
@@ -7,7 +7,7 @@ export interface MonthData {
   thai: string
   thaiPronunciation: string
   season: Season
-  seasonEmoji: string
+  seasonIcon: "Snowflake" | "Flower2" | "Sun" | "Leaf"
   memoryTrick: string
 }
 
@@ -18,8 +18,8 @@ export const MONTHS: MonthData[] = [
     full: "January",
     thai: "มกราคม",
     thaiPronunciation: "má-gà-raa-kom",
-    season: "❄️ Winter",
-    seasonEmoji: "❄️",
+    season: "Winter",
+    seasonIcon: "Snowflake",
     memoryTrick: "Jan starts the year fresh",
   },
   {
@@ -28,8 +28,8 @@ export const MONTHS: MonthData[] = [
     full: "February",
     thai: "กุมภาพันธ์",
     thaiPronunciation: "gum-paa-pan",
-    season: "❄️ Winter",
-    seasonEmoji: "❄️",
+    season: "Winter",
+    seasonIcon: "Snowflake",
     memoryTrick: "Feb = February = short month",
   },
   {
@@ -38,8 +38,8 @@ export const MONTHS: MonthData[] = [
     full: "March",
     thai: "มีนาคม",
     thaiPronunciation: "mee-naa-kom",
-    season: "🌸 Spring",
-    seasonEmoji: "🌸",
+    season: "Spring",
+    seasonIcon: "Flower2",
     memoryTrick: "March forward into spring",
   },
   {
@@ -48,8 +48,8 @@ export const MONTHS: MonthData[] = [
     full: "April",
     thai: "เมษายน",
     thaiPronunciation: "may-sǎa-yon",
-    season: "🌸 Spring",
-    seasonEmoji: "🌸",
+    season: "Spring",
+    seasonIcon: "Flower2",
     memoryTrick: "April showers bring May flowers",
   },
   {
@@ -58,8 +58,8 @@ export const MONTHS: MonthData[] = [
     full: "May",
     thai: "พฤษภาคม",
     thaiPronunciation: "prʉ́t-sà-paa-kom",
-    season: "🌸 Spring",
-    seasonEmoji: "🌸",
+    season: "Spring",
+    seasonIcon: "Flower2",
     memoryTrick: "May flowers bloom",
   },
   {
@@ -68,8 +68,8 @@ export const MONTHS: MonthData[] = [
     full: "June",
     thai: "มิถุนายน",
     thaiPronunciation: "mí-tù-naa-yon",
-    season: "☀️ Summer",
-    seasonEmoji: "☀️",
+    season: "Summer",
+    seasonIcon: "Sun",
     memoryTrick: "June — school's out",
   },
   {
@@ -78,8 +78,8 @@ export const MONTHS: MonthData[] = [
     full: "July",
     thai: "กรกฎาคม",
     thaiPronunciation: "gà-rák-gà-daa-kom",
-    season: "☀️ Summer",
-    seasonEmoji: "☀️",
+    season: "Summer",
+    seasonIcon: "Sun",
     memoryTrick: "July = hot summer peak",
   },
   {
@@ -88,8 +88,8 @@ export const MONTHS: MonthData[] = [
     full: "August",
     thai: "สิงหาคม",
     thaiPronunciation: "sǐng-hǎa-kom",
-    season: "☀️ Summer",
-    seasonEmoji: "☀️",
+    season: "Summer",
+    seasonIcon: "Sun",
     memoryTrick: "August = lion month (สิงห์ = lion)",
   },
   {
@@ -98,8 +98,8 @@ export const MONTHS: MonthData[] = [
     full: "September",
     thai: "กันยายน",
     thaiPronunciation: "gan-yaa-yon",
-    season: "🍂 Autumn",
-    seasonEmoji: "🍂",
+    season: "Autumn",
+    seasonIcon: "Leaf",
     memoryTrick: "Sep-tember, 7th month in old Rome",
   },
   {
@@ -108,8 +108,8 @@ export const MONTHS: MonthData[] = [
     full: "October",
     thai: "ตุลาคม",
     thaiPronunciation: "dtù-laa-kom",
-    season: "🍂 Autumn",
-    seasonEmoji: "🍂",
+    season: "Autumn",
+    seasonIcon: "Leaf",
     memoryTrick: "October = scale (ตุลา = scales)",
   },
   {
@@ -118,8 +118,8 @@ export const MONTHS: MonthData[] = [
     full: "November",
     thai: "พฤศจิกายน",
     thaiPronunciation: "prʉ́t-sà-jì-gaa-yon",
-    season: "🍂 Autumn",
-    seasonEmoji: "🍂",
+    season: "Autumn",
+    seasonIcon: "Leaf",
     memoryTrick: "November = scorpion (พิจิก = scorpio)",
   },
   {
@@ -128,17 +128,19 @@ export const MONTHS: MonthData[] = [
     full: "December",
     thai: "ธันวาคม",
     thaiPronunciation: "tan-waa-kom",
-    season: "❄️ Winter",
-    seasonEmoji: "❄️",
+    season: "Winter",
+    seasonIcon: "Snowflake",
     memoryTrick: "December ends the year with cold",
   },
 ]
+
+export type PeriodIconType = "Moon" | "Clock" | "Sunrise" | "Sun" | "Cloud" | "Sunset" | "Moon"
 
 export interface ThaiTimeResult {
   thaiSpoken: string
   period: "เที่ยงคืน" | "ตี" | "เช้า" | "เที่ยง" | "บ่าย" | "เย็น" | "ทุ่ม"
   periodEnglish: "Midnight" | "Deep Night" | "Morning" | "Noon" | "Afternoon" | "Evening" | "Night"
-  periodIcon: string
+  periodIcon: PeriodIconType
 }
 
 export function translateToThaiTime(hour: number, minute: number): ThaiTimeResult {
@@ -146,7 +148,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
   const m = minute
 
   if (h === 0 && m === 0) {
-    return { thaiSpoken: "เที่ยงคืน", period: "เที่ยงคืน", periodEnglish: "Midnight", periodIcon: "🌑" }
+    return { thaiSpoken: "เที่ยงคืน", period: "เที่ยงคืน", periodEnglish: "Midnight", periodIcon: "Moon" }
   }
 
   if (h >= 1 && h <= 5) {
@@ -156,7 +158,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `ตี ${teeHour}${suffix}`,
       period: "ตี",
       periodEnglish: "Deep Night",
-      periodIcon: "🌙",
+      periodIcon: "Clock",
     }
   }
 
@@ -166,7 +168,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `6 โมงเช้า${suffix}`,
       period: "เช้า",
       periodEnglish: "Morning",
-      periodIcon: "🌅",
+      periodIcon: "Sunrise",
     }
   }
 
@@ -177,7 +179,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `${morningHour} โมงเช้า${suffix}`,
       period: "เช้า",
       periodEnglish: "Morning",
-      periodIcon: "☀️",
+      periodIcon: "Sun",
     }
   }
 
@@ -187,7 +189,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `เที่ยง${suffix}`,
       period: "เที่ยง",
       periodEnglish: "Noon",
-      periodIcon: "🌞",
+      periodIcon: "Sun",
     }
   }
 
@@ -198,7 +200,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `บ่าย ${bayHour}${suffix}`,
       period: "บ่าย",
       periodEnglish: "Afternoon",
-      periodIcon: "🌤️",
+      periodIcon: "Cloud",
     }
   }
 
@@ -209,7 +211,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `${eveningHour} โมงเย็น${suffix}`,
       period: "เย็น",
       periodEnglish: "Evening",
-      periodIcon: "🌆",
+      periodIcon: "Cloud",
     }
   }
 
@@ -219,7 +221,7 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `6 โมงเย็น${suffix}`,
       period: "เย็น",
       periodEnglish: "Evening",
-      periodIcon: "🌇",
+      periodIcon: "Sunset",
     }
   }
 
@@ -230,9 +232,9 @@ export function translateToThaiTime(hour: number, minute: number): ThaiTimeResul
       thaiSpoken: `${tumHour} ทุ่ม${suffix}`,
       period: "ทุ่ม",
       periodEnglish: "Night",
-      periodIcon: "🌃",
+      periodIcon: "Moon",
     }
   }
 
-  return { thaiSpoken: "เที่ยงคืน", period: "เที่ยงคืน", periodEnglish: "Midnight", periodIcon: "🌑" }
+  return { thaiSpoken: "เที่ยงคืน", period: "เที่ยงคืน", periodEnglish: "Midnight", periodIcon: "Moon" }
 }

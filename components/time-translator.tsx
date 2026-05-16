@@ -3,24 +3,43 @@
 import { useState, useEffect } from "react"
 import { translateToThaiTime } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
-import { Clock, X, Radio } from "lucide-react"
+import { 
+  Clock, 
+  X, 
+  Radio, 
+  Moon, 
+  Sunrise, 
+  Sun, 
+  Sunset,
+  Cloud
+} from "lucide-react"
+import type { PeriodIconType } from "@/lib/calendar-data"
 
 function pad(n: number) {
   return n.toString().padStart(2, "0")
 }
 
 const QUICK_EXAMPLES = [
-  { label: "00:00", display: "Midnight" },
-  { label: "06:00", display: "6am" },
-  { label: "12:00", display: "Noon" },
-  { label: "13:00", display: "1pm" },
-  { label: "18:00", display: "6pm" },
-  { label: "19:00", display: "7pm" },
-  { label: "23:00", display: "11pm" },
+  { hour: 0, display: "Midnight" },
+  { hour: 6, display: "6am" },
+  { hour: 12, display: "Noon" },
+  { hour: 13, display: "1pm" },
+  { hour: 18, display: "6pm" },
+  { hour: 19, display: "7pm" },
+  { hour: 23, display: "11pm" },
 ]
 
+const PERIOD_ICONS: Record<PeriodIconType, typeof Moon> = {
+  "Moon": Moon,
+  "Clock": Clock,
+  "Sunrise": Sunrise,
+  "Sun": Sun,
+  "Cloud": Cloud,
+  "Sunset": Sunset,
+}
+
 export function TimeTranslator() {
-  const [pickerValue, setPickerValue] = useState("") // "HH:MM" from <input type="time">
+  const [selectedHour, setSelectedHour] = useState<number | null>(null)
   const [liveTime, setLiveTime] = useState<{ hour: number; minute: number; second: number } | null>(null)
   const [useLive, setUseLive] = useState(true)
 
@@ -35,39 +54,29 @@ export function TimeTranslator() {
     return () => clearInterval(id)
   }, [])
 
-  // Sync picker to live when live mode first activates
-  useEffect(() => {
-    if (useLive && liveTime) {
-      setPickerValue(`${pad(liveTime.hour)}:${pad(liveTime.minute)}`)
-    }
-  }, [useLive, liveTime?.hour, liveTime?.minute])
+  const activeHour: number | null = useLive && liveTime ? liveTime.hour : selectedHour
+  const result = activeHour !== null ? translateToThaiTime(activeHour, 0) : null
 
-  const activeTime: { hour: number; minute: number } | null = useLive && liveTime
-    ? { hour: liveTime.hour, minute: liveTime.minute }
-    : pickerValue
-    ? { hour: parseInt(pickerValue.split(":")[0]), minute: parseInt(pickerValue.split(":")[1]) }
-    : null
-
-  const result = activeTime ? translateToThaiTime(activeTime.hour, activeTime.minute) : null
-
-  const handlePickerChange = (val: string) => {
-    setPickerValue(val)
+  const handleHourChange = (hour: number) => {
+    setSelectedHour(hour)
     setUseLive(false)
   }
 
-  const handleQuickPick = (val: string) => {
-    setPickerValue(val)
+  const handleQuickPick = (hour: number) => {
+    setSelectedHour(hour)
     setUseLive(false)
   }
 
   const handleClear = () => {
-    setPickerValue("")
+    setSelectedHour(null)
     setUseLive(true)
   }
 
-  const displayHour = activeTime ? pad(activeTime.hour) : "--"
-  const displayMinute = activeTime ? pad(activeTime.minute) : "--"
+  const displayHour = activeHour !== null ? pad(activeHour) : "--"
+  const displayMinute = "00"
   const displaySecond = useLive && liveTime ? pad(liveTime.second) : null
+
+  const PeriodIcon = result ? PERIOD_ICONS[result.periodIcon] : null
 
   return (
     <div className="flex flex-col h-full">
@@ -83,7 +92,7 @@ export function TimeTranslator() {
               Live — showing current time
             </>
           ) : (
-            "Custom time selected"
+            "Custom hour selected"
           )}
         </p>
       </div>
@@ -121,47 +130,60 @@ export function TimeTranslator() {
                 <span>{result.period}</span>
               </p>
             </div>
-            <span className="text-4xl leading-none mt-1 select-none" aria-hidden>
-              {result.periodIcon}
-            </span>
+            {PeriodIcon && (
+              <PeriodIcon
+                className="w-8 h-8 text-accent-foreground/60 flex-shrink-0 mt-1"
+                aria-hidden
+              />
+            )}
           </div>
         </div>
       ) : (
         <div className="bg-muted/20 border border-dashed border-border/40 rounded-2xl p-5 mb-5 flex items-center justify-center">
-          <p className="text-sm text-muted-foreground/50">Pick a time to see Thai translation</p>
+          <p className="text-sm text-muted-foreground/50">Pick an hour to see Thai translation</p>
         </div>
       )}
 
-      {/* Time picker */}
-      <div className="relative mb-4">
-        <Clock
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none"
-          aria-hidden
-        />
-        <input
-          type="time"
-          value={pickerValue}
-          onChange={(e) => handlePickerChange(e.target.value)}
-          className={cn(
-            "w-full rounded-xl bg-muted/30 border border-border/60 pl-10 pr-10 py-3",
-            "text-base font-mono text-foreground",
-            "focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50",
-            "transition-all duration-150",
-            "[color-scheme:dark]",
-            "[&::-webkit-calendar-picker-indicator]:opacity-0",
-            "[&::-webkit-calendar-picker-indicator]:absolute"
+      {/* Hour range slider */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">
+            Hour: {displayHour}
+          </label>
+          {!useLive && (
+            <button
+              onClick={handleClear}
+              className="text-muted-foreground/50 hover:text-muted-foreground transition-colors p-0.5 rounded"
+              aria-label="Clear — go back to live time"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           )}
-          aria-label="Select time"
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="23"
+          value={selectedHour !== null ? selectedHour : (liveTime?.hour ?? 0)}
+          onChange={(e) => handleHourChange(parseInt(e.target.value))}
+          className={cn(
+            "w-full h-2 bg-muted/50 rounded-lg appearance-none cursor-pointer",
+            "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4",
+            "[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent-foreground [&::-webkit-slider-thumb]:cursor-pointer",
+            "[&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-all",
+            "[&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full",
+            "[&::-moz-range-thumb]:bg-accent-foreground [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer",
+            "[&::-moz-range-thumb]:shadow-md"
+          )}
+          aria-label="Select hour"
         />
-        {!useLive && (
-          <button
-            onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors p-0.5 rounded"
-            aria-label="Clear — go back to live time"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
+        <div className="flex justify-between mt-1.5 text-[10px] text-muted-foreground/30 tabular-nums">
+          <span>0</span>
+          <span>6</span>
+          <span>12</span>
+          <span>18</span>
+          <span>23</span>
+        </div>
       </div>
 
       {/* Quick examples */}
@@ -170,16 +192,16 @@ export function TimeTranslator() {
         <div className="flex flex-wrap gap-1.5">
           {QUICK_EXAMPLES.map((ex) => (
             <button
-              key={ex.label}
-              onClick={() => handleQuickPick(ex.label)}
+              key={ex.hour}
+              onClick={() => handleQuickPick(ex.hour)}
               className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-mono transition-all duration-150",
-                pickerValue === ex.label && !useLive
+                selectedHour === ex.hour && !useLive
                   ? "bg-accent/20 text-accent-foreground border border-accent/40"
                   : "bg-muted/30 text-muted-foreground border border-border/40 hover:bg-muted/50 hover:text-foreground"
               )}
             >
-              {ex.label}
+              {pad(ex.hour)}:00
               <span className="ml-1 text-[10px] opacity-50">{ex.display}</span>
             </button>
           ))}
@@ -191,30 +213,33 @@ export function TimeTranslator() {
         <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mb-2">Thai Time Periods</p>
         <div className="grid grid-cols-2 gap-1.5">
           {[
-            { period: "เที่ยงคืน", en: "Midnight", time: "00:00", icon: "🌑" },
-            { period: "ตี ...", en: "Deep Night", time: "01–05", icon: "🌙" },
-            { period: "... โมงเช้า", en: "Morning", time: "06–11", icon: "☀️" },
-            { period: "เที่ยง", en: "Noon", time: "12:00", icon: "🌞" },
-            { period: "บ่าย ...", en: "Afternoon", time: "13–15", icon: "🌤️" },
-            { period: "... โมงเย็น", en: "Evening", time: "16–18", icon: "🌇" },
-            { period: "... ทุ่ม", en: "Night", time: "19–23", icon: "🌃" },
-          ].map((row) => (
-            <div
-              key={row.period}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-2.5 py-2 transition-all",
-                result?.periodEnglish === row.en
-                  ? "bg-accent/15 border border-accent/30"
-                  : "bg-muted/20 border border-transparent"
-              )}
-            >
-              <span className="text-sm" aria-hidden>{row.icon}</span>
-              <div className="min-w-0">
-                <p className="text-[11px] font-medium text-foreground/80 leading-none truncate">{row.period}</p>
-                <p className="text-[10px] text-muted-foreground/50 mt-0.5">{row.time} · {row.en}</p>
+            { period: "เที่ยงคืน", en: "Midnight", time: "00:00", icon: "Moon" as PeriodIconType },
+            { period: "ตี ...", en: "Deep Night", time: "01–05", icon: "Clock" as PeriodIconType },
+            { period: "... โมงเช้า", en: "Morning", time: "06–11", icon: "Sun" as PeriodIconType },
+            { period: "เที่ยง", en: "Noon", time: "12:00", icon: "Sun" as PeriodIconType },
+            { period: "บ่าย ...", en: "Afternoon", time: "13–15", icon: "Cloud" as PeriodIconType },
+            { period: "... โมงเย็น", en: "Evening", time: "16–18", icon: "Sunset" as PeriodIconType },
+            { period: "... ทุ่ม", en: "Night", time: "19–23", icon: "Moon" as PeriodIconType },
+          ].map((row) => {
+            const IconComp = PERIOD_ICONS[row.icon]
+            return (
+              <div
+                key={row.period}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-2.5 py-2 transition-all",
+                  result?.periodEnglish === row.en
+                    ? "bg-accent/15 border border-accent/30"
+                    : "bg-muted/20 border border-transparent"
+                )}
+              >
+                <IconComp className="w-4 h-4 flex-shrink-0 text-muted-foreground/50" aria-hidden />
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium text-foreground/80 leading-none truncate">{row.period}</p>
+                  <p className="text-[10px] text-muted-foreground/50 mt-0.5">{row.time} · {row.en}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

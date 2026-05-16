@@ -2,6 +2,14 @@
 
 import { MONTHS, type MonthData } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
+import { Snowflake, Flower2, Sun, Leaf } from "lucide-react"
+
+const SEASON_ICONS = {
+  Snowflake,
+  Flower2,
+  Sun,
+  Leaf,
+}
 
 interface MonthRowProps {
   month: MonthData
@@ -50,10 +58,16 @@ function MonthRow({ month, isCurrentMonth }: MonthRowProps) {
         {month.thai}
       </span>
 
-      {/* Season dot */}
-      <span className="text-sm ml-1" title={month.season}>
-        {month.seasonEmoji}
-      </span>
+      {/* Season icon */}
+      {(() => {
+        const IconComponent = SEASON_ICONS[month.seasonIcon]
+        return (
+          <IconComponent
+            className="w-4 h-4 text-muted-foreground/60"
+            aria-label={month.season}
+          />
+        )
+      })()}
 
       {/* Current month indicator */}
       {isCurrentMonth && (
