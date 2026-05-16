@@ -4,11 +4,12 @@ import { MONTHS, type MonthData } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
 import { Snowflake, Flower2, Sun, Leaf } from "lucide-react"
 
+// muzli palette: slate #9aadbd · rose #e14275 · amber #e7a838 · blue #2e6ebf
 const SEASON_ICONS: Record<string, { icon: typeof Snowflake; color: string }> = {
-  Snowflake: { icon: Snowflake, color: "text-sky-400" },
-  Flower2:   { icon: Flower2,   color: "text-pink-400" },
-  Sun:       { icon: Sun,       color: "text-yellow-400" },
-  Leaf:      { icon: Leaf,      color: "text-orange-400" },
+  Snowflake: { icon: Snowflake, color: "text-[#9aadbd]" },
+  Flower2:   { icon: Flower2,   color: "text-[#e14275]" },
+  Sun:       { icon: Sun,       color: "text-[#e7a838]" },
+  Leaf:      { icon: Leaf,      color: "text-[#e7a838]" },
 }
 
 interface MonthRowProps {

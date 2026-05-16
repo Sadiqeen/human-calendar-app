@@ -10,13 +10,14 @@ function pad(n: number) {
   return n.toString().padStart(2, "0")
 }
 
+// Colors derived from muzli palette: blue #2e6ebf · slate #9aadbd · rose #e14275 · amber #e7a838
 const PERIOD_ICON_CONFIG: Record<PeriodIconType, { icon: typeof Moon; color: string }> = {
-  Moon:    { icon: Moon,    color: "text-indigo-400" },
-  Clock:   { icon: Clock,   color: "text-blue-400" },
-  Sunrise: { icon: Sunrise, color: "text-orange-400" },
-  Sun:     { icon: Sun,     color: "text-yellow-400" },
-  Cloud:   { icon: Cloud,   color: "text-sky-400" },
-  Sunset:  { icon: Sunset,  color: "text-rose-400" },
+  Moon:    { icon: Moon,    color: "text-[#9aadbd]" },
+  Clock:   { icon: Clock,   color: "text-[#2e6ebf]" },
+  Sunrise: { icon: Sunrise, color: "text-[#e7a838]" },
+  Sun:     { icon: Sun,     color: "text-[#e7a838]" },
+  Cloud:   { icon: Cloud,   color: "text-[#9aadbd]" },
+  Sunset:  { icon: Sunset,  color: "text-[#e14275]" },
 }
 
 type TimeMode = "24hr" | "ampm"
@@ -29,15 +30,22 @@ function formatHour(hour: number, mode: TimeMode): string {
   return `${h12}${period}`
 }
 
-// Period background tint per time-of-day block
+// Period tints mapped to muzli palette
 function periodTint(hour: number): string {
-  if (hour === 0)              return "bg-indigo-500/10 border-indigo-500/20"
-  if (hour >= 1 && hour <= 5) return "bg-blue-500/10 border-blue-500/20"
-  if (hour >= 6 && hour <= 11) return "bg-orange-400/10 border-orange-400/20"
-  if (hour === 12)             return "bg-yellow-400/10 border-yellow-400/20"
-  if (hour >= 13 && hour <= 15) return "bg-yellow-300/10 border-yellow-300/20"
-  if (hour >= 16 && hour <= 18) return "bg-rose-400/10 border-rose-400/20"
-  return "bg-indigo-600/10 border-indigo-600/20"
+  // midnight      → slate #9aadbd
+  if (hour === 0)                return "bg-[#9aadbd]/8 border-[#9aadbd]/15"
+  // deep night    → blue #2e6ebf
+  if (hour >= 1 && hour <= 5)   return "bg-[#2e6ebf]/8 border-[#2e6ebf]/15"
+  // morning       → amber #e7a838
+  if (hour >= 6 && hour <= 11)  return "bg-[#e7a838]/8 border-[#e7a838]/15"
+  // noon          → amber bright
+  if (hour === 12)               return "bg-[#e7a838]/12 border-[#e7a838]/20"
+  // afternoon     → slate
+  if (hour >= 13 && hour <= 15) return "bg-[#9aadbd]/8 border-[#9aadbd]/15"
+  // evening       → rose #e14275
+  if (hour >= 16 && hour <= 18) return "bg-[#e14275]/8 border-[#e14275]/15"
+  // night         → blue
+  return "bg-[#2e6ebf]/8 border-[#2e6ebf]/15"
 }
 
 export function TimeTranslator() {
@@ -57,7 +65,8 @@ export function TimeTranslator() {
 
   const isLive = selectedHour === null
   const activeHour = isLive ? (liveTime?.hour ?? 0) : selectedHour
-  const result = translateToThaiTime(activeHour, 0)
+  const activeMinute = isLive ? (liveTime?.minute ?? 0) : 0
+  const result = translateToThaiTime(activeHour, activeMinute)
   const periodConfig = PERIOD_ICON_CONFIG[result.periodIcon]
   const PeriodIcon = periodConfig.icon
 
@@ -111,7 +120,9 @@ export function TimeTranslator() {
           {pad(activeHour)}
         </span>
         <span className="text-3xl font-light text-muted-foreground/50 mb-0.5">:</span>
-        <span className="text-5xl font-bold tracking-tight tabular-nums text-foreground">00</span>
+        <span className="text-5xl font-bold tracking-tight tabular-nums text-foreground">
+          {pad(activeMinute)}
+        </span>
         {isLive && liveTime && (
           <>
             <span className="text-xl font-light text-muted-foreground/40 mb-0.5 ml-0.5">:</span>
