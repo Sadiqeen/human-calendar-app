@@ -10,14 +10,14 @@ function pad(n: number) {
   return n.toString().padStart(2, "0")
 }
 
-// Colors derived from muzli palette: blue #2e6ebf · slate #9aadbd · rose #e14275 · amber #e7a838
+// Colors derived from theme palette
 const PERIOD_ICON_CONFIG: Record<PeriodIconType, { icon: typeof Moon; color: string }> = {
-  Moon:    { icon: Moon,    color: "text-[#9aadbd]" },
-  Clock:   { icon: Clock,   color: "text-[#2e6ebf]" },
-  Sunrise: { icon: Sunrise, color: "text-[#e7a838]" },
-  Sun:     { icon: Sun,     color: "text-[#e7a838]" },
-  Cloud:   { icon: Cloud,   color: "text-[#9aadbd]" },
-  Sunset:  { icon: Sunset,  color: "text-[#e14275]" },
+  Moon: { icon: Moon, color: "text-chart-3" },
+  Clock: { icon: Clock, color: "text-chart-1" },
+  Sunrise: { icon: Sunrise, color: "text-chart-5" },
+  Sun: { icon: Sun, color: "text-chart-5" },
+  Cloud: { icon: Cloud, color: "text-chart-3" },
+  Sunset: { icon: Sunset, color: "text-chart-4" },
 }
 
 type TimeMode = "24hr" | "ampm"
@@ -26,27 +26,11 @@ type TimeMode = "24hr" | "ampm"
 function formatHour(hour: number, mode: TimeMode): string {
   if (mode === "24hr") return pad(hour)
   const h12 = hour % 12 || 12
-  const period = hour < 12 ? "AM" : "PM"
+  const period = hour < 12 ? " AM" : " PM"
   return `${h12}${period}`
 }
 
-// Period tints mapped to muzli palette
-function periodTint(hour: number): string {
-  // midnight      → slate #9aadbd
-  if (hour === 0)                return "bg-[#9aadbd]/8 border-[#9aadbd]/15"
-  // deep night    → blue #2e6ebf
-  if (hour >= 1 && hour <= 5)   return "bg-[#2e6ebf]/8 border-[#2e6ebf]/15"
-  // morning       → amber #e7a838
-  if (hour >= 6 && hour <= 11)  return "bg-[#e7a838]/8 border-[#e7a838]/15"
-  // noon          → amber bright
-  if (hour === 12)               return "bg-[#e7a838]/12 border-[#e7a838]/20"
-  // afternoon     → slate
-  if (hour >= 13 && hour <= 15) return "bg-[#9aadbd]/8 border-[#9aadbd]/15"
-  // evening       → rose #e14275
-  if (hour >= 16 && hour <= 18) return "bg-[#e14275]/8 border-[#e14275]/15"
-  // night         → blue
-  return "bg-[#2e6ebf]/8 border-[#2e6ebf]/15"
-}
+
 
 export function TimeTranslator() {
   const [selectedHour, setSelectedHour] = useState<number | null>(null)
@@ -86,7 +70,7 @@ export function TimeTranslator() {
           <p className="text-[11px] text-muted-foreground/60 flex items-center gap-1">
             {isLive ? (
               <>
-                <Radio className="w-2.5 h-2.5 text-accent-foreground" aria-hidden />
+                <Radio className="w-2.5 h-2.5 text-accent" aria-hidden />
                 Live — current time
               </>
             ) : (
@@ -102,9 +86,9 @@ export function TimeTranslator() {
               key={m}
               onClick={() => setMode(m)}
               className={cn(
-                "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
+                "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer",
                 mode === m
-                  ? "bg-accent/20 text-accent-foreground"
+                  ? "bg-accent/20 text-accent"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -141,7 +125,7 @@ export function TimeTranslator() {
               {result.thaiSpoken}
             </p>
             <p className="text-sm text-muted-foreground">
-              <span className="text-accent-foreground font-medium">{result.periodEnglish}</span>
+              <span className="text-accent font-medium">{result.periodEnglish}</span>
               {" · "}
               <span>{result.period}</span>
             </p>
@@ -166,7 +150,7 @@ export function TimeTranslator() {
               "flex items-center gap-1 text-[11px] rounded-md px-2 py-1 transition-all font-medium",
               isLive
                 ? "text-muted-foreground/30 cursor-default"
-                : "text-accent-foreground bg-accent/15 hover:bg-accent/25"
+                : "text-accent bg-accent/15 hover:bg-accent/25 cursor-pointer"
             )}
             aria-label="Reset to current time"
           >
@@ -187,13 +171,10 @@ export function TimeTranslator() {
                 aria-label={`Select ${formatHour(h, mode)}`}
                 aria-pressed={isSelected}
                 className={cn(
-                  "relative flex flex-col items-center justify-center rounded-xl py-2 px-1 border transition-all duration-150 text-center",
+                  "relative flex flex-col items-center justify-center rounded py-2 px-1 border transition-all duration-150 text-center cursor-pointer",
                   isSelected
-                    ? cn("border-accent/60 bg-accent/20 text-accent-foreground shadow-sm scale-105", periodTint(h))
-                    : cn(
-                        "border-transparent text-muted-foreground hover:border-border/50 hover:text-foreground hover:bg-muted/40",
-                        periodTint(h)
-                      )
+                    ? "border-accent/60 bg-accent/20 text-accent shadow-sm scale-105"
+                    : "border-transparent bg-muted text-muted-foreground hover:border-border/50 hover:text-foreground hover:bg-muted/40"
                 )}
               >
                 <span className={cn(
@@ -204,7 +185,7 @@ export function TimeTranslator() {
                 </span>
                 {/* Live pulse dot */}
                 {isCurrentLive && (
-                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-accent-foreground animate-pulse" />
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                 )}
               </button>
             )
@@ -220,13 +201,13 @@ export function TimeTranslator() {
         <div className="grid grid-cols-2 gap-1.5">
           {(
             [
-              { period: "เที่ยงคืน",    en: "Midnight",   time: "00:00", icon: "Moon"    },
-              { period: "ตี ...",        en: "Deep Night", time: "01–05", icon: "Clock"   },
-              { period: "... โมงเช้า",  en: "Morning",    time: "06–11", icon: "Sun"     },
-              { period: "เที่ยง",       en: "Noon",       time: "12:00", icon: "Sun"     },
-              { period: "บ่าย ...",     en: "Afternoon",  time: "13–15", icon: "Cloud"   },
-              { period: "... โมงเย็น",  en: "Evening",    time: "16–18", icon: "Sunset"  },
-              { period: "... ทุ่ม",     en: "Night",      time: "19–23", icon: "Moon"    },
+              { period: "เที่ยงคืน", en: "Midnight", time: "00:00", icon: "Moon" },
+              { period: "ตี ...", en: "Deep Night", time: "01–05", icon: "Clock" },
+              { period: "... โมงเช้า", en: "Morning", time: "06–11", icon: "Sun" },
+              { period: "เที่ยง", en: "Noon", time: "12:00", icon: "Sun" },
+              { period: "บ่าย ...", en: "Afternoon", time: "13–15", icon: "Cloud" },
+              { period: "... โมงเย็น", en: "Evening", time: "16–18", icon: "Sunset" },
+              { period: "... ทุ่ม", en: "Night", time: "19–23", icon: "Moon" },
             ] as Array<{ period: string; en: string; time: string; icon: PeriodIconType }>
           ).map((row) => {
             const cfg = PERIOD_ICON_CONFIG[row.icon]
@@ -236,24 +217,24 @@ export function TimeTranslator() {
               <div
                 key={row.period}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-2.5 py-2 transition-all border",
+                  "flex items-center gap-4 rounded-lg px-2.5 py-2 transition-all border",
                   isActive
                     ? "bg-accent/15 border-accent/30"
-                    : "bg-muted/20 border-transparent"
+                    : "bg-muted/80 border-transparent"
                 )}
               >
                 <IconComp
                   className={cn(
                     "w-4 h-4 flex-shrink-0",
-                    isActive ? cfg.color : "text-muted-foreground/30"
+                    isActive ? cfg.color : "text-muted-foreground/50"
                   )}
                   aria-hidden
                 />
                 <div className="min-w-0">
-                  <p className="text-[11px] font-medium text-foreground/80 leading-none truncate">
+                  <p className="text-[13px] font-medium text-foreground/80 leading-none truncate">
                     {row.period}
                   </p>
-                  <p className="text-[10px] text-muted-foreground/50 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground/80 mt-0.5">
                     {row.time} · {row.en}
                   </p>
                 </div>

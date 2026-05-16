@@ -4,12 +4,12 @@ import { MONTHS, type MonthData } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
 import { Snowflake, Flower2, Sun, Leaf } from "lucide-react"
 
-// muzli palette: slate #9aadbd · rose #e14275 · amber #e7a838 · blue #2e6ebf
+// Colors mapped to theme palette
 const SEASON_ICONS: Record<string, { icon: typeof Snowflake; color: string }> = {
-  Snowflake: { icon: Snowflake, color: "text-[#9aadbd]" },
-  Flower2:   { icon: Flower2,   color: "text-[#e14275]" },
-  Sun:       { icon: Sun,       color: "text-[#e7a838]" },
-  Leaf:      { icon: Leaf,      color: "text-[#e7a838]" },
+  Snowflake: { icon: Snowflake, color: "text-sky-400" },
+  Flower2: { icon: Flower2, color: "text-rose-400" },
+  Sun: { icon: Sun, color: "text-amber-400" },
+  Leaf: { icon: Leaf, color: "text-emerald-400" },
 }
 
 interface MonthRowProps {
@@ -30,7 +30,7 @@ function MonthRow({ month, isCurrentMonth }: MonthRowProps) {
       {/* Month number */}
       <span className={cn(
         "w-6 text-right text-xs font-mono font-medium transition-colors",
-        isCurrentMonth ? "text-accent-foreground" : "text-muted-foreground"
+        isCurrentMonth ? "text-accent" : "text-muted-foreground"
       )}>
         {month.number}
       </span>
@@ -99,7 +99,7 @@ export function MonthBoard() {
       <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-xl bg-muted/20 border border-border/30">
         <div className="flex flex-col min-w-0">
           <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider leading-none mb-1">พ.ศ.</span>
-          <span className="text-2xl font-bold tabular-nums text-accent-foreground leading-none">{bsYear}</span>
+          <span className="text-2xl font-bold tabular-nums text-accent leading-none">{bsYear}</span>
         </div>
         <div className="w-px h-8 bg-border/40 mx-1" />
         <div className="flex flex-col min-w-0">

@@ -3,95 +3,94 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Human Calendar — Muzli Palette with WCAG AA Contrast
-   Primary: #2e6ebf (blue) | Accent: #e14275 (rose) | Muted: #9aadbd (slate)
-   Secondary: #e7a838 (amber) | Light: #f8f8f8 (off-white) */
+/* Modern Premium Indigo Palette
+   Primary: Indigo | Accent: Violet | Neutral: Zinc */
 
 :root, .dark {
-  /* Dark mode (default) — background #111418 with light text #f8f8f8 (contrast 18.2:1) */
-  --background:             #111418;
-  --foreground:             #f8f8f8;
-  --card:                   #181c22;
-  --card-foreground:        #f8f8f8;
-  --popover:                #1d222a;
-  --popover-foreground:     #f8f8f8;
+  /* Dark mode (default) */
+  --background:             #09090b;
+  --foreground:             #fafafa;
+  --card:                   #09090b;
+  --card-foreground:        #fafafa;
+  --popover:                #09090b;
+  --popover-foreground:     #fafafa;
   
-  /* Primary: blue #2e6ebf on white has 6.8:1 contrast (WCAG AAA for normal text) */
-  --primary:                #2e6ebf;
-  --primary-foreground:     #f8f8f8;
+  /* Primary: Indigo */
+  --primary:                #6366f1;
+  --primary-foreground:     #ffffff;
   
-  /* Secondary: darker blue-gray for secondary elements */
-  --secondary:              #1e262e;
-  --secondary-foreground:   #9aadbd;
+  /* Secondary */
+  --secondary:              #27272a;
+  --secondary-foreground:   #fafafa;
   
-  /* Muted: slate #9aadbd on dark bg has 6.1:1 (WCAG AA) */
-  --muted:                  #1a2028;
-  --muted-foreground:       #9aadbd;
+  /* Muted */
+  --muted:                  #27272a;
+  --muted-foreground:       #a1a1aa;
   
-  /* Accent: rose #e14275 on dark bg has 7.2:1 contrast (WCAG AAA) */
-  --accent:                 #e14275;
-  --accent-foreground:      #f8f8f8;
+  /* Accent: Violet */
+  --accent:                 #8b5cf6;
+  --accent-foreground:      #ffffff;
   
-  --border:                 #252d38;
-  --input:                  #1e262e;
-  --ring:                   #2e6ebf;
-  --destructive:            #e14275;
-  --destructive-foreground: #f8f8f8;
+  --border:                 #27272a;
+  --input:                  #27272a;
+  --ring:                   #6366f1;
+  --destructive:            #ef4444;
+  --destructive-foreground: #fafafa;
   --radius:                 0.75rem;
   
   /* Sidebar */
-  --sidebar:                #181c22;
-  --sidebar-foreground:     #f8f8f8;
-  --sidebar-primary:        #2e6ebf;
-  --sidebar-primary-foreground: #f8f8f8;
-  --sidebar-accent:         #1e262e;
-  --sidebar-accent-foreground: #9aadbd;
-  --sidebar-border:         #252d38;
-  --sidebar-ring:           #2e6ebf;
+  --sidebar:                #09090b;
+  --sidebar-foreground:     #fafafa;
+  --sidebar-primary:        #6366f1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:         #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border:         #27272a;
+  --sidebar-ring:           #6366f1;
   
-  /* Charts: full muzli palette */
-  --chart-1:                #e7a838;
-  --chart-2:                #2e6ebf;
-  --chart-3:                #9aadbd;
-  --chart-4:                #e14275;
-  --chart-5:                #f8f8f8;
+  /* Charts */
+  --chart-1:                #6366f1;
+  --chart-2:                #8b5cf6;
+  --chart-3:                #ec4899;
+  --chart-4:                #14b8a6;
+  --chart-5:                #f59e0b;
 }
 
 .light {
-  /* Light mode — background #f8f8f8 with dark text #111418 (contrast 18.2:1) */
-  --background:             #f8f8f8;
-  --foreground:             #111418;
+  /* Light mode */
+  --background:             #ffffff;
+  --foreground:             #09090b;
   --card:                   #ffffff;
-  --card-foreground:        #111418;
+  --card-foreground:        #09090b;
   --popover:                #ffffff;
-  --popover-foreground:     #111418;
+  --popover-foreground:     #09090b;
   
-  /* Primary: blue #2e6ebf on light stays same color (dark text mode) */
-  --primary:                #2e6ebf;
-  --primary-foreground:     #f8f8f8;
+  /* Primary: Indigo */
+  --primary:                #4f46e5;
+  --primary-foreground:     #ffffff;
   
-  /* Secondary lightened for contrast */
-  --secondary:              #e8edf2;
-  --secondary-foreground:   #3a4a58;
+  /* Secondary */
+  --secondary:              #f4f4f5;
+  --secondary-foreground:   #18181b;
   
   /* Muted */
-  --muted:                  #edf0f4;
-  --muted-foreground:       #5a7080;
+  --muted:                  #f4f4f5;
+  --muted-foreground:       #3f3f46;
   
-  /* Accent: rose stays same, contrast 7.2:1 on light bg */
-  --accent:                 #e14275;
-  --accent-foreground:      #f8f8f8;
+  /* Accent: Violet */
+  --accent:                 #7c3aed;
+  --accent-foreground:      #ffffff;
   
-  --border:                 #d4dde6;
-  --input:                  #e8edf2;
-  --ring:                   #2e6ebf;
-  --destructive:            #e14275;
-  --destructive-foreground: #f8f8f8;
+  --border:                 #e4e4e7;
+  --input:                  #e4e4e7;
+  --ring:                   #4f46e5;
+  --destructive:            #ef4444;
+  --destructive-foreground: #fafafa;
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-prompt), sans-serif;
+  --font-mono: var(--font-mono), monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
