@@ -4,11 +4,11 @@ import { MONTHS, type MonthData } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
 import { Snowflake, Flower2, Sun, Leaf } from "lucide-react"
 
-const SEASON_ICONS = {
-  Snowflake,
-  Flower2,
-  Sun,
-  Leaf,
+const SEASON_ICONS: Record<string, { icon: typeof Snowflake; color: string }> = {
+  Snowflake: { icon: Snowflake, color: "text-sky-400" },
+  Flower2:   { icon: Flower2,   color: "text-pink-400" },
+  Sun:       { icon: Sun,       color: "text-yellow-400" },
+  Leaf:      { icon: Leaf,      color: "text-orange-400" },
 }
 
 interface MonthRowProps {
@@ -60,10 +60,10 @@ function MonthRow({ month, isCurrentMonth }: MonthRowProps) {
 
       {/* Season icon */}
       {(() => {
-        const IconComponent = SEASON_ICONS[month.seasonIcon]
+        const cfg = SEASON_ICONS[month.seasonIcon]
         return (
-          <IconComponent
-            className="w-4 h-4 text-muted-foreground/60"
+          <cfg.icon
+            className={cn("w-4 h-4", cfg.color)}
             aria-label={month.season}
           />
         )
