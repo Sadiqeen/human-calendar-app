@@ -3,65 +3,71 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Human Calendar — dark-first, calm minimal theme */
-:root {
-  /* Dark mode is default */
-  --background: oklch(0.12 0.005 240);
-  --foreground: oklch(0.93 0.005 240);
-  --card: oklch(0.16 0.006 240);
-  --card-foreground: oklch(0.93 0.005 240);
-  --popover: oklch(0.18 0.006 240);
-  --popover-foreground: oklch(0.93 0.005 240);
-  --primary: oklch(0.93 0.005 240);
-  --primary-foreground: oklch(0.12 0.005 240);
-  --secondary: oklch(0.20 0.006 240);
-  --secondary-foreground: oklch(0.80 0.005 240);
-  --muted: oklch(0.20 0.006 240);
-  --muted-foreground: oklch(0.55 0.006 240);
-  /* Accent: a soft warm amber — not purple, calm */
-  --accent: oklch(0.72 0.12 60);
-  --accent-foreground: oklch(0.92 0.06 60);
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(0.90 0.05 25);
-  --border: oklch(0.24 0.006 240);
-  --input: oklch(0.22 0.006 240);
-  --ring: oklch(0.72 0.12 60);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.16 0.006 240);
-  --sidebar-foreground: oklch(0.93 0.005 240);
-  --sidebar-primary: oklch(0.72 0.12 60);
-  --sidebar-primary-foreground: oklch(0.12 0.005 240);
-  --sidebar-accent: oklch(0.20 0.006 240);
-  --sidebar-accent-foreground: oklch(0.80 0.005 240);
-  --sidebar-border: oklch(0.24 0.006 240);
-  --sidebar-ring: oklch(0.72 0.12 60);
-  /* Chart colors */
-  --chart-1: oklch(0.72 0.12 60);
-  --chart-2: oklch(0.65 0.10 200);
-  --chart-3: oklch(0.60 0.08 160);
-  --chart-4: oklch(0.55 0.09 280);
-  --chart-5: oklch(0.70 0.11 30);
+/* Human Calendar — Muzli palette
+   #f8f8f8 off-white · #2e6ebf blue · #9aadbd slate · #e14275 rose · #e7a838 amber */
+:root, .dark {
+  --background:             #111418;
+  --foreground:             #f8f8f8;
+  --card:                   #181c22;
+  --card-foreground:        #f8f8f8;
+  --popover:                #1d222a;
+  --popover-foreground:     #f8f8f8;
+  /* Primary = blue */
+  --primary:                #2e6ebf;
+  --primary-foreground:     #f8f8f8;
+  /* Secondary = slate */
+  --secondary:              #1e262e;
+  --secondary-foreground:   #9aadbd;
+  --muted:                  #1a2028;
+  --muted-foreground:       #9aadbd;
+  /* Accent = rose (highlight) */
+  --accent:                 #e14275;
+  --accent-foreground:      #f8f8f8;
+  /* Ring / focus = blue */
+  --ring:                   #2e6ebf;
+  --border:                 #252d38;
+  --input:                  #1e262e;
+  --destructive:            #e14275;
+  --destructive-foreground: #f8f8f8;
+  --radius:                 0.75rem;
+  /* Sidebar */
+  --sidebar:                #181c22;
+  --sidebar-foreground:     #f8f8f8;
+  --sidebar-primary:        #2e6ebf;
+  --sidebar-primary-foreground: #f8f8f8;
+  --sidebar-accent:         #1e262e;
+  --sidebar-accent-foreground: #9aadbd;
+  --sidebar-border:         #252d38;
+  --sidebar-ring:           #2e6ebf;
+  /* Charts — full palette */
+  --chart-1:                #e7a838;
+  --chart-2:                #2e6ebf;
+  --chart-3:                #9aadbd;
+  --chart-4:                #e14275;
+  --chart-5:                #f8f8f8;
 }
 
 /* Light mode overrides */
 .light {
-  --background: oklch(0.97 0.003 240);
-  --foreground: oklch(0.15 0.006 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.006 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.006 240);
-  --primary: oklch(0.15 0.006 240);
-  --primary-foreground: oklch(0.97 0.003 240);
-  --secondary: oklch(0.93 0.004 240);
-  --secondary-foreground: oklch(0.25 0.006 240);
-  --muted: oklch(0.93 0.004 240);
-  --muted-foreground: oklch(0.50 0.006 240);
-  --accent: oklch(0.60 0.14 55);
-  --accent-foreground: oklch(0.97 0.02 55);
-  --border: oklch(0.88 0.004 240);
-  --input: oklch(0.88 0.004 240);
-  --ring: oklch(0.60 0.14 55);
+  --background:             #f8f8f8;
+  --foreground:             #111418;
+  --card:                   #ffffff;
+  --card-foreground:        #111418;
+  --popover:                #ffffff;
+  --popover-foreground:     #111418;
+  --primary:                #2e6ebf;
+  --primary-foreground:     #f8f8f8;
+  --secondary:              #e8edf2;
+  --secondary-foreground:   #3a4a58;
+  --muted:                  #edf0f4;
+  --muted-foreground:       #5a7080;
+  --accent:                 #e14275;
+  --accent-foreground:      #f8f8f8;
+  --ring:                   #2e6ebf;
+  --border:                 #d4dde6;
+  --input:                  #e8edf2;
+  --destructive:            #e14275;
+  --destructive-foreground: #f8f8f8;
 }
 
 @theme inline {
@@ -111,5 +117,15 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

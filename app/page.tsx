@@ -1,5 +1,29 @@
+"use client"
+
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
+import { Moon, Sun } from "lucide-react"
 import { MonthBoard } from "@/components/month-board"
 import { TimeTranslator } from "@/components/time-translator"
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return <div className="w-8 h-8" />
+
+  const isDark = theme === "dark"
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+    >
+      {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    </button>
+  )
+}
 
 export default function HumanCalendarPage() {
   return (
@@ -8,13 +32,17 @@ export default function HumanCalendarPage() {
       <header className="flex items-center justify-between px-6 py-4 border-b border-border/30">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-md bg-accent/30 flex items-center justify-center">
-            <span className="text-xs" aria-hidden>📅</span>
+            <Sun className="w-3.5 h-3.5 text-accent-foreground" aria-hidden />
           </div>
           <span className="text-sm font-semibold tracking-tight text-foreground">Human Calendar</span>
         </div>
-        <p className="text-[11px] text-muted-foreground/50 hidden sm:block">
-          Low-effort month &amp; time reference
-        </p>
+
+        <div className="flex items-center gap-3">
+          <p className="text-[11px] text-muted-foreground/50 hidden sm:block">
+            Low-effort month &amp; time reference
+          </p>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Split layout */}

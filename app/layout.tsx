@@ -1,10 +1,19 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Sarabun, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const sarabun = Sarabun({ 
+  subsets: ["latin", "thai"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sarabun"
+});
+
+const geistMono = Geist_Mono({ 
+  subsets: ["latin"],
+  variable: "--font-mono"
+});
 
 export const metadata: Metadata = {
   title: 'Human Calendar',
@@ -35,10 +44,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
-      <body className="font-sans antialiased bg-background text-foreground">
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${sarabun.className} antialiased bg-background text-foreground`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          storageKey="hc-theme"
+        >
+          {children}
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </ThemeProvider>
       </body>
     </html>
   )
