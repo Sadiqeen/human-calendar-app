@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { translateToThaiTime } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
 import {
@@ -12,8 +12,8 @@ import {
   Sun,
   Sunset,
   Cloud,
+  ChevronUp,
   ChevronDown,
-  Check,
 } from "lucide-react"
 import type { PeriodIconType } from "@/lib/calendar-data"
 
@@ -21,11 +21,7 @@ function pad(n: number) {
   return n.toString().padStart(2, "0")
 }
 
-// Icon color map per period
-const PERIOD_ICON_CONFIG: Record<
-  PeriodIconType,
-  { icon: typeof Moon; color: string }
-> = {
+const PERIOD_ICON_CONFIG: Record<PeriodIconType, { icon: typeof Moon; color: string }> = {
   Moon:    { icon: Moon,    color: "text-indigo-400" },
   Clock:   { icon: Clock,   color: "text-blue-400" },
   Sunrise: { icon: Sunrise, color: "text-orange-400" },
@@ -36,107 +32,144 @@ const PERIOD_ICON_CONFIG: Record<
 
 type TimeMode = "24hr" | "ampm"
 
-const HOURS_24 = Array.from({ length: 24 }, (_, i) => i)
-
-function to12(h: number): { hour: number; period: "AM" | "PM" } {
-  if (h === 0)  return { hour: 12, period: "AM" }
-  if (h < 12)   return { hour: h,  period: "AM" }
-  if (h === 12) return { hour: 12, period: "PM" }
-  return { hour: h - 12, period: "PM" }
+// --- Scroll-Wheel Column ---
+interface WheelColumnProps {
+  items: string[]
+  selectedIndex: number
+  onChange: (index: number) => void
+  label?: string
 }
 
-function from12(h: number, p: "AM" | "PM"): number {
-  if (p === "AM") return h === 12 ? 0 : h
-  return h === 12 ? 12 : h + 12
-}
+const ITEM_H = 44 // px per row
 
-function formatHourLabel(h: number, mode: TimeMode): string {
-  if (mode === "24hr") return `${pad(h)}:00`
-  const { hour, period } = to12(h)
-  return `${hour}:00 ${period}`
-}
+function WheelColumn({ items, selectedIndex, onChange, label }: WheelColumnProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const startY = useRef(0)
+  const startIndex = useRef(0)
+  const frameRef = useRef<number | null>(null)
 
-interface HourDropdownProps {
-  value: number | null
-  liveHour: number
-  useLive: boolean
-  mode: TimeMode
-  onChange: (h: number) => void
-}
-
-function HourDropdown({ value, liveHour, useLive, mode, onChange }: HourDropdownProps) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  const displayHour = useLive ? liveHour : (value ?? liveHour)
-  const label = formatHourLabel(displayHour, mode)
-
+  // Scroll into view on change
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    const el = containerRef.current
+    if (!el) return
+    el.scrollTo({ top: selectedIndex * ITEM_H, behavior: "smooth" })
+  }, [selectedIndex])
+
+  const clamp = (v: number) => Math.max(0, Math.min(items.length - 1, v))
+
+  const handleScroll = useCallback(() => {
+    if (frameRef.current) return
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null
+      const el = containerRef.current
+      if (!el) return
+      const idx = Math.round(el.scrollTop / ITEM_H)
+      if (idx !== selectedIndex) onChange(clamp(idx))
+    })
+  }, [selectedIndex, onChange, items.length])
+
+  // Touch/mouse drag
+  const onPointerDown = (e: React.PointerEvent) => {
+    isDragging.current = true
+    startY.current = e.clientY
+    startIndex.current = selectedIndex
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) return
+    const delta = startY.current - e.clientY
+    const newIdx = clamp(startIndex.current + Math.round(delta / ITEM_H))
+    if (newIdx !== selectedIndex) {
+      onChange(newIdx)
+      containerRef.current?.scrollTo({ top: newIdx * ITEM_H, behavior: "instant" })
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }
+  const onPointerUp = () => { isDragging.current = false }
 
   return (
-    <div ref={ref} className="relative">
+    <div className="flex flex-col items-center select-none">
+      {label && (
+        <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-1">{label}</span>
+      )}
+      {/* Up arrow */}
       <button
-        onClick={() => setOpen((o) => !o)}
-        className={cn(
-          "flex items-center gap-2 w-full px-3 py-2.5 rounded-xl border text-sm font-mono transition-all",
-          "bg-muted/30 border-border/50 text-foreground hover:bg-muted/50 hover:border-border",
-          open && "border-accent/50 bg-muted/50"
-        )}
-        aria-haspopup="listbox"
-        aria-expanded={open}
+        onClick={() => onChange(clamp(selectedIndex - 1))}
+        className="flex items-center justify-center w-full py-1 text-muted-foreground/40 hover:text-foreground/70 transition-colors"
+        tabIndex={-1}
+        aria-label="Previous"
       >
-        <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-        <span className="flex-1 text-left tabular-nums">{label}</span>
-        {useLive && (
-          <span className="text-[10px] text-accent-foreground/70 uppercase tracking-wide">Live</span>
-        )}
-        <ChevronDown
-          className={cn("w-4 h-4 text-muted-foreground transition-transform", open && "rotate-180")}
-        />
+        <ChevronUp className="w-4 h-4" />
       </button>
 
-      {open && (
+      {/* Viewport — 3 rows visible, middle is selected */}
+      <div className="relative w-full" style={{ height: ITEM_H * 3 }}>
+        {/* Selection highlight */}
         <div
-          role="listbox"
-          className="absolute z-50 top-full mt-1 left-0 right-0 max-h-56 overflow-y-auto rounded-xl border border-border bg-card shadow-xl"
+          className="absolute inset-x-0 pointer-events-none rounded-lg bg-accent/15 border border-accent/25"
+          style={{ top: ITEM_H, height: ITEM_H }}
+        />
+
+        {/* Fade masks */}
+        <div className="absolute inset-x-0 top-0 pointer-events-none z-10"
+          style={{ height: ITEM_H, background: "linear-gradient(to bottom, var(--tw-gradient-from), transparent)" }}
+        />
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none z-10"
+          style={{ height: ITEM_H, background: "linear-gradient(to top, var(--tw-gradient-from), transparent)" }}
+        />
+
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          className="absolute inset-0 overflow-y-scroll no-scrollbar cursor-ns-resize"
+          style={{ scrollSnapType: "y mandatory" }}
         >
-          {HOURS_24.map((h) => {
-            const isSelected = !useLive && value === h
-            return (
-              <button
-                key={h}
-                role="option"
-                aria-selected={isSelected}
-                onClick={() => { onChange(h); setOpen(false) }}
-                className={cn(
-                  "flex items-center gap-2 w-full px-3 py-2 text-sm font-mono transition-colors text-left",
-                  isSelected
-                    ? "bg-accent/20 text-accent-foreground"
-                    : "text-foreground/80 hover:bg-muted/60 hover:text-foreground"
-                )}
-              >
-                <span className="tabular-nums flex-1">{formatHourLabel(h, mode)}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-accent-foreground" />}
-              </button>
-            )
-          })}
+          {/* padding before first item */}
+          <div style={{ height: ITEM_H }} />
+          {items.map((item, i) => (
+            <div
+              key={item}
+              onClick={() => onChange(i)}
+              style={{ height: ITEM_H, scrollSnapAlign: "center" }}
+              className={cn(
+                "flex items-center justify-center font-mono text-lg font-semibold tabular-nums transition-all cursor-pointer",
+                i === selectedIndex
+                  ? "text-foreground scale-110"
+                  : "text-muted-foreground/40 scale-95 hover:text-muted-foreground/70"
+              )}
+            >
+              {item}
+            </div>
+          ))}
+          {/* padding after last item */}
+          <div style={{ height: ITEM_H }} />
         </div>
-      )}
+      </div>
+
+      {/* Down arrow */}
+      <button
+        onClick={() => onChange(clamp(selectedIndex + 1))}
+        className="flex items-center justify-center w-full py-1 text-muted-foreground/40 hover:text-foreground/70 transition-colors"
+        tabIndex={-1}
+        aria-label="Next"
+      >
+        <ChevronDown className="w-4 h-4" />
+      </button>
     </div>
   )
 }
 
+// --- Main Component ---
 export function TimeTranslator() {
   const [selectedHour, setSelectedHour] = useState<number | null>(null)
   const [liveTime, setLiveTime] = useState<{ hour: number; minute: number; second: number } | null>(null)
   const [useLive, setUseLive] = useState(true)
   const [mode, setMode] = useState<TimeMode>("24hr")
+  const [ampm, setAmpm] = useState<"AM" | "PM">("AM")
 
   useEffect(() => {
     const update = () => {
@@ -150,9 +183,40 @@ export function TimeTranslator() {
 
   const activeHour: number = useLive && liveTime ? liveTime.hour : (selectedHour ?? 0)
   const result = translateToThaiTime(activeHour, 0)
+  const periodConfig = PERIOD_ICON_CONFIG[result.periodIcon]
+  const PeriodIcon = periodConfig.icon
 
-  const handleHourChange = (hour: number) => {
-    setSelectedHour(hour)
+  // --- Wheel picker items ---
+  const hours24 = Array.from({ length: 24 }, (_, i) => pad(i))     // "00"–"23"
+  const hours12 = Array.from({ length: 12 }, (_, i) => pad(i + 1)) // "01"–"12"
+  const ampmItems = ["AM", "PM"]
+
+  // Convert activeHour to 12h for display
+  const active12h = activeHour === 0 ? 12 : activeHour > 12 ? activeHour - 12 : activeHour
+  const activeAmpm: "AM" | "PM" = activeHour < 12 ? "AM" : "PM"
+
+  const handleHourChange24 = (idx: number) => {
+    setSelectedHour(idx)
+    setUseLive(false)
+  }
+
+  const handleHourChange12 = (idx: number) => {
+    const h12 = idx + 1 // 1–12
+    const newHour = ampm === "AM"
+      ? (h12 === 12 ? 0 : h12)
+      : (h12 === 12 ? 12 : h12 + 12)
+    setSelectedHour(newHour)
+    setUseLive(false)
+  }
+
+  const handleAmpmChange = (idx: number) => {
+    const newAmpm = idx === 0 ? "AM" : "PM"
+    setAmpm(newAmpm)
+    const h12 = useLive ? active12h : (selectedHour === null ? 12 : active12h)
+    const newHour = newAmpm === "AM"
+      ? (h12 === 12 ? 0 : h12)
+      : (h12 === 12 ? 12 : h12 + 12)
+    setSelectedHour(newHour)
     setUseLive(false)
   }
 
@@ -161,11 +225,12 @@ export function TimeTranslator() {
     setUseLive(true)
   }
 
-  const displayHour = pad(activeHour)
-  const displaySecond = useLive && liveTime ? pad(liveTime.second) : null
-
-  const periodConfig = PERIOD_ICON_CONFIG[result.periodIcon]
-  const PeriodIcon = periodConfig.icon
+  // Sync ampm with liveTime when in live mode
+  useEffect(() => {
+    if (useLive && liveTime) {
+      setAmpm(liveTime.hour < 12 ? "AM" : "PM")
+    }
+  }, [useLive, liveTime])
 
   return (
     <div className="flex flex-col h-full">
@@ -187,27 +252,27 @@ export function TimeTranslator() {
       </div>
 
       {/* Big clock display */}
-      <div className="flex items-baseline gap-1 mb-5">
+      <div className="flex items-baseline gap-1 mb-4">
         <span className="text-5xl font-bold tracking-tight tabular-nums text-foreground">
-          {displayHour}
+          {pad(activeHour)}
         </span>
         <span className="text-3xl font-light text-muted-foreground mb-0.5">:</span>
         <span className="text-5xl font-bold tracking-tight tabular-nums text-foreground">00</span>
-        {displaySecond !== null && (
+        {useLive && liveTime && (
           <>
             <span className="text-xl font-light text-muted-foreground/50 mb-0.5 ml-0.5">:</span>
             <span className="text-xl font-mono text-muted-foreground/50 tabular-nums mb-0.5">
-              {displaySecond}
+              {pad(liveTime.second)}
             </span>
           </>
         )}
       </div>
 
       {/* Thai translation result */}
-      <div className="bg-muted/30 border border-border/50 rounded-2xl p-5 mb-5 transition-all duration-300">
+      <div className="bg-muted/30 border border-border/50 rounded-2xl p-4 mb-4 transition-all duration-300">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-4xl font-bold text-foreground leading-none mb-2 text-pretty">
+            <p className="text-3xl font-bold text-foreground leading-none mb-2 text-pretty">
               {result.thaiSpoken}
             </p>
             <p className="text-sm text-muted-foreground">
@@ -216,61 +281,79 @@ export function TimeTranslator() {
               <span>{result.period}</span>
             </p>
           </div>
-          <PeriodIcon
-            className={cn("w-8 h-8 flex-shrink-0 mt-1", periodConfig.color)}
-            aria-hidden
-          />
+          <PeriodIcon className={cn("w-7 h-7 flex-shrink-0 mt-1", periodConfig.color)} aria-hidden />
         </div>
       </div>
 
-      {/* Controls row: dropdown + mode toggle */}
-      <div className="flex items-center gap-2 mb-5">
-        <div className="flex-1">
-          <HourDropdown
-            value={selectedHour}
-            liveHour={liveTime?.hour ?? 0}
-            useLive={useLive}
-            mode={mode}
-            onChange={handleHourChange}
-          />
+      {/* Wheel Picker + controls */}
+      <div className="bg-muted/20 border border-border/30 rounded-2xl p-4 mb-4"
+        style={{ "--tw-gradient-from": "oklch(0.16 0.006 240)" } as React.CSSProperties}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Pick hour</span>
+          <div className="flex items-center gap-0.5 rounded-lg border border-border/40 bg-muted/20 p-0.5">
+            <button
+              onClick={() => setMode("24hr")}
+              className={cn(
+                "px-2 py-1 rounded-md text-[11px] font-medium transition-all",
+                mode === "24hr" ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              24h
+            </button>
+            <button
+              onClick={() => setMode("ampm")}
+              className={cn(
+                "px-2 py-1 rounded-md text-[11px] font-medium transition-all",
+                mode === "ampm" ? "bg-accent/20 text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              AM/PM
+            </button>
+          </div>
+          {!useLive && (
+            <button
+              onClick={handleClear}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Back to live time"
+            >
+              <X className="w-3.5 h-3.5" />
+              Live
+            </button>
+          )}
         </div>
 
-        {/* 24hr / AM-PM toggle */}
-        <div className="flex items-center rounded-xl border border-border/50 bg-muted/20 p-0.5 gap-0.5 flex-shrink-0">
-          <button
-            onClick={() => setMode("24hr")}
-            className={cn(
-              "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
-              mode === "24hr"
-                ? "bg-accent/20 text-accent-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            24h
-          </button>
-          <button
-            onClick={() => setMode("ampm")}
-            className={cn(
-              "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
-              mode === "ampm"
-                ? "bg-accent/20 text-accent-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            AM/PM
-          </button>
+        <div className="flex items-center justify-center gap-3">
+          {mode === "24hr" ? (
+            <div className="w-20">
+              <WheelColumn
+                items={hours24}
+                selectedIndex={activeHour}
+                onChange={handleHourChange24}
+                label="hour"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="w-16">
+                <WheelColumn
+                  items={hours12}
+                  selectedIndex={active12h - 1}
+                  onChange={handleHourChange12}
+                  label="hour"
+                />
+              </div>
+              <div className="w-14">
+                <WheelColumn
+                  items={ampmItems}
+                  selectedIndex={useLive ? (activeAmpm === "AM" ? 0 : 1) : (ampm === "AM" ? 0 : 1)}
+                  onChange={handleAmpmChange}
+                  label="period"
+                />
+              </div>
+            </>
+          )}
         </div>
-
-        {/* Clear / back to live */}
-        {!useLive && (
-          <button
-            onClick={handleClear}
-            className="p-2 rounded-xl border border-border/50 bg-muted/20 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all flex-shrink-0"
-            aria-label="Back to live time"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
       {/* Reference table */}
@@ -279,13 +362,13 @@ export function TimeTranslator() {
         <div className="grid grid-cols-2 gap-1.5">
           {(
             [
-              { period: "เที่ยงคืน", en: "Midnight",  time: "00:00", icon: "Moon"    },
-              { period: "ตี ...",     en: "Deep Night", time: "01–05", icon: "Clock"   },
-              { period: "... โมงเช้า",en: "Morning",   time: "06–11", icon: "Sun"     },
-              { period: "เที่ยง",    en: "Noon",       time: "12:00", icon: "Sun"     },
-              { period: "บ่าย ...",   en: "Afternoon",  time: "13–15", icon: "Cloud"   },
-              { period: "... โมงเย็น",en: "Evening",   time: "16–18", icon: "Sunset"  },
-              { period: "... ทุ่ม",   en: "Night",     time: "19–23", icon: "Moon"    },
+              { period: "เที่ยงคืน",   en: "Midnight",   time: "00:00", icon: "Moon"    },
+              { period: "ตี ...",       en: "Deep Night", time: "01–05", icon: "Clock"   },
+              { period: "... โมงเช้า", en: "Morning",    time: "06–11", icon: "Sun"     },
+              { period: "เที่ยง",      en: "Noon",       time: "12:00", icon: "Sun"     },
+              { period: "บ่าย ...",    en: "Afternoon",  time: "13–15", icon: "Cloud"   },
+              { period: "... โมงเย็น", en: "Evening",    time: "16–18", icon: "Sunset"  },
+              { period: "... ทุ่ม",    en: "Night",      time: "19–23", icon: "Moon"    },
             ] as Array<{ period: string; en: string; time: string; icon: PeriodIconType }>
           ).map((row) => {
             const cfg = PERIOD_ICON_CONFIG[row.icon]
@@ -302,7 +385,7 @@ export function TimeTranslator() {
                 )}
               >
                 <IconComp
-                  className={cn("w-4 h-4 flex-shrink-0", isActive ? cfg.color : "text-muted-foreground/40")}
+                  className={cn("w-4 h-4 flex-shrink-0", isActive ? cfg.color : "text-muted-foreground/30")}
                   aria-hidden
                 />
                 <div className="min-w-0">
