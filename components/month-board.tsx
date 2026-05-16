@@ -65,16 +65,32 @@ function MonthRow({ month, isCurrentMonth }: MonthRowProps) {
 }
 
 export function MonthBoard() {
-  const currentMonth = new Date().getMonth() + 1
+  const now = new Date()
+  const currentMonth = now.getMonth() + 1
+  const csYear = now.getFullYear()
+  const bsYear = csYear + 543
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-3">
         <h2 className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-0.5">
           Month Mapping
         </h2>
         <p className="text-[11px] text-muted-foreground/60">Number · English · Thai</p>
+      </div>
+
+      {/* Year display */}
+      <div className="flex items-center gap-3 mb-4 px-3 py-2.5 rounded-xl bg-muted/20 border border-border/30">
+        <div className="flex flex-col min-w-0">
+          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider leading-none mb-1">พ.ศ.</span>
+          <span className="text-2xl font-bold tabular-nums text-accent-foreground leading-none">{bsYear}</span>
+        </div>
+        <div className="w-px h-8 bg-border/40 mx-1" />
+        <div className="flex flex-col min-w-0">
+          <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider leading-none mb-1">ค.ศ.</span>
+          <span className="text-2xl font-bold tabular-nums text-foreground/70 leading-none">{csYear}</span>
+        </div>
       </div>
 
       {/* Column labels */}

@@ -1,41 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { translateToThaiTime } from "@/lib/calendar-data"
 import { cn } from "@/lib/utils"
+import { Clock, X, Radio } from "lucide-react"
 
 function pad(n: number) {
   return n.toString().padStart(2, "0")
-}
-
-function parseTo24h(input: string): { hour: number; minute: number } | null {
-  // Try HH:MM (24h)
-  const match24 = input.match(/^(\d{1,2}):(\d{2})$/)
-  if (match24) {
-    const h = parseInt(match24[1])
-    const m = parseInt(match24[2])
-    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) return { hour: h, minute: m }
-  }
-
-  // Try H:MM AM/PM
-  const matchAmPm = input.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i)
-  if (matchAmPm) {
-    let h = parseInt(matchAmPm[1])
-    const m = matchAmPm[2] ? parseInt(matchAmPm[2]) : 0
-    const period = matchAmPm[3].toLowerCase()
-    if (period === "am" && h === 12) h = 0
-    if (period === "pm" && h !== 12) h += 12
-    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) return { hour: h, minute: m }
-  }
-
-  // Try plain number like "19" or "7"
-  const matchPlain = input.match(/^(\d{1,2})$/)
-  if (matchPlain) {
-    const h = parseInt(matchPlain[1])
-    if (h >= 0 && h <= 23) return { hour: h, minute: 0 }
-  }
-
-  return null
 }
 
 const QUICK_EXAMPLES = [
@@ -49,10 +20,9 @@ const QUICK_EXAMPLES = [
 ]
 
 export function TimeTranslator() {
-  const [input, setInput] = useState("")
+  const [pickerValue, setPickerValue] = useState("") // "HH:MM" from <input type="time">
   const [liveTime, setLiveTime] = useState<{ hour: number; minute: number; second: number } | null>(null)
   const [useLive, setUseLive] = useState(true)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   // Live clock
   useEffect(() => {
@@ -65,30 +35,39 @@ export function TimeTranslator() {
     return () => clearInterval(id)
   }, [])
 
-  // Determine what to translate
-  const parsed = input.trim() ? parseTo24h(input.trim()) : null
-  const activeTime = parsed ?? (useLive && liveTime ? { hour: liveTime.hour, minute: liveTime.minute } : null)
+  // Sync picker to live when live mode first activates
+  useEffect(() => {
+    if (useLive && liveTime) {
+      setPickerValue(`${pad(liveTime.hour)}:${pad(liveTime.minute)}`)
+    }
+  }, [useLive, liveTime?.hour, liveTime?.minute])
+
+  const activeTime: { hour: number; minute: number } | null = useLive && liveTime
+    ? { hour: liveTime.hour, minute: liveTime.minute }
+    : pickerValue
+    ? { hour: parseInt(pickerValue.split(":")[0]), minute: parseInt(pickerValue.split(":")[1]) }
+    : null
+
   const result = activeTime ? translateToThaiTime(activeTime.hour, activeTime.minute) : null
 
-  const handleInput = (val: string) => {
-    setInput(val)
-    setUseLive(val.trim() === "")
+  const handlePickerChange = (val: string) => {
+    setPickerValue(val)
+    setUseLive(false)
   }
 
   const handleQuickPick = (val: string) => {
-    setInput(val)
+    setPickerValue(val)
     setUseLive(false)
-    inputRef.current?.focus()
   }
 
   const handleClear = () => {
-    setInput("")
+    setPickerValue("")
     setUseLive(true)
   }
 
   const displayHour = activeTime ? pad(activeTime.hour) : "--"
   const displayMinute = activeTime ? pad(activeTime.minute) : "--"
-  const displaySecond = useLive && !input && liveTime ? pad(liveTime.second) : null
+  const displaySecond = useLive && liveTime ? pad(liveTime.second) : null
 
   return (
     <div className="flex flex-col h-full">
@@ -97,12 +76,19 @@ export function TimeTranslator() {
         <h2 className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-0.5">
           Time Translator
         </h2>
-        <p className="text-[11px] text-muted-foreground/60">
-          {useLive ? "Live — showing current time" : "Type any time to translate"}
+        <p className="text-[11px] text-muted-foreground/60 flex items-center gap-1">
+          {useLive ? (
+            <>
+              <Radio className="w-2.5 h-2.5 text-accent-foreground" aria-hidden />
+              Live — showing current time
+            </>
+          ) : (
+            "Custom time selected"
+          )}
         </p>
       </div>
 
-      {/* Big live clock display */}
+      {/* Big clock display */}
       <div className="flex items-baseline gap-1 mb-5">
         <span className="text-5xl font-bold tracking-tight tabular-nums text-foreground">
           {displayHour}
@@ -142,32 +128,38 @@ export function TimeTranslator() {
         </div>
       ) : (
         <div className="bg-muted/20 border border-dashed border-border/40 rounded-2xl p-5 mb-5 flex items-center justify-center">
-          <p className="text-sm text-muted-foreground/50">Enter a time to see Thai translation</p>
+          <p className="text-sm text-muted-foreground/50">Pick a time to see Thai translation</p>
         </div>
       )}
 
-      {/* Input */}
+      {/* Time picker */}
       <div className="relative mb-4">
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => handleInput(e.target.value)}
-          placeholder="e.g. 19:00, 7pm, 13"
-          className={cn(
-            "w-full rounded-xl bg-muted/30 border border-border/60 px-4 py-3",
-            "text-base font-mono placeholder:text-muted-foreground/40 text-foreground",
-            "focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50",
-            "transition-all duration-150"
-          )}
+        <Clock
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none"
+          aria-hidden
         />
-        {input && (
+        <input
+          type="time"
+          value={pickerValue}
+          onChange={(e) => handlePickerChange(e.target.value)}
+          className={cn(
+            "w-full rounded-xl bg-muted/30 border border-border/60 pl-10 pr-10 py-3",
+            "text-base font-mono text-foreground",
+            "focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50",
+            "transition-all duration-150",
+            "[color-scheme:dark]",
+            "[&::-webkit-calendar-picker-indicator]:opacity-0",
+            "[&::-webkit-calendar-picker-indicator]:absolute"
+          )}
+          aria-label="Select time"
+        />
+        {!useLive && (
           <button
             onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground text-xs px-1.5 py-0.5 rounded transition-colors"
-            aria-label="Clear input"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors p-0.5 rounded"
+            aria-label="Clear — go back to live time"
           >
-            ✕
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
@@ -182,7 +174,7 @@ export function TimeTranslator() {
               onClick={() => handleQuickPick(ex.label)}
               className={cn(
                 "px-2.5 py-1 rounded-lg text-xs font-mono transition-all duration-150",
-                input === ex.label
+                pickerValue === ex.label && !useLive
                   ? "bg-accent/20 text-accent-foreground border border-accent/40"
                   : "bg-muted/30 text-muted-foreground border border-border/40 hover:bg-muted/50 hover:text-foreground"
               )}
